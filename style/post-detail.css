@@ -24,3 +24,7 @@ section.hero {
   width: 100%;
   margin-bottom: 1rem;
 }
+
+.post-detail .post-image:hover {
+cursor: pointer;
+}
