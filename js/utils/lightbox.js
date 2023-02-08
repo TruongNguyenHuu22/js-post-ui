@@ -6,8 +6,11 @@ function showModal(modalElement) {
 export function registerLightbox({ modalId, imageSelector, prevSelector, nextSelector }) {
   const modalElement = document.getElementById(modalId);
   if (!modalElement) return;
-  //selectors
 
+  //check if the modal id registered or not
+  if (Boolean(modalElement.dataset.registered)) return;
+
+  //selectors
   const imageElement = modalElement.querySelector(imageSelector);
   const prevButton = modalElement.querySelector(prevSelector);
   const nextButton = modalElement.querySelector(nextSelector);
@@ -35,12 +38,15 @@ export function registerLightbox({ modalId, imageSelector, prevSelector, nextSel
   });
 
   prevButton.addEventListener('click', () => {
-    //show previous image of current album
-    console.log('pre');
+    currentIndex = (currentIndex - 1 + imgList.length) % imgList.length;
+    showImgAtIndex(currentIndex);
   });
 
   nextButton.addEventListener('click', () => {
-    //show next image of current album
-    console.log('next');
+    currentIndex = (currentIndex + 1) % imgList.length;
+    showImgAtIndex(currentIndex);
   });
+
+  //mark this modal is already registered
+  modalElement.dataset.registered = 'true';
 }
