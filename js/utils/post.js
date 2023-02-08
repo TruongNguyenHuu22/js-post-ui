@@ -26,8 +26,20 @@ export function createPostElement(post) {
   //go to post detail when click
   const divElement = liElement.firstElementChild;
   if (divElement) {
-    divElement.addEventListener('click', () => {
+    divElement.addEventListener('click', (event) => {
+      const menu = liElement.querySelector('[data-id="menu"]');
+      if (menu && menu.contains(event.target)) return;
+
       window.location.assign(`/post-detail.html?id=${post.id}`);
+    });
+  }
+
+  //add click event fort edit button
+  const editButton = liElement.querySelector('[data-id="edit"]');
+  if (editButton) {
+    editButton.addEventListener('click', () => {
+      //prevent event bubbling to parent
+      window.location.assign(`/add-edit-post.html?id=${post.id}`);
     });
   }
   return liElement;
