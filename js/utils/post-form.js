@@ -1,4 +1,4 @@
-import { setBackgroundImage, setFieldValue, setTextContent } from './common';
+import { randomNumber, setBackgroundImage, setFieldValue, setTextContent } from './common';
 import * as yup from 'yup';
 
 function setFormValues(form, formValues) {
@@ -33,6 +33,10 @@ function getPostSchema() {
         (value) => value.split(' ').filter((x) => !!x && x.length >= 3).length >= 2
       ),
     description: yup.string(),
+    imageUrl: yup
+      .string()
+      .required('Please random a background image')
+      .url('Please enter a valid URL'),
   });
 }
 
@@ -47,7 +51,7 @@ function setFieldError(form, name, error) {
 async function validatePostForm(form, formValues) {
   try {
     //reset previous error
-    ['title', 'author'].forEach((name) => setFieldError(form, name, ''));
+    ['title', 'author', 'imageUrl'].forEach((name) => setFieldError(form, name, ''));
 
     //start validating
     const schema = getPostSchema();
@@ -72,20 +76,61 @@ async function validatePostForm(form, formValues) {
   if (!isValid) form.classList.add('was-validated');
   return isValid;
 }
+
+function showLoading(form) {
+  const button = form.querySelector('[name="submit"]');
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Saving';
+  }
+}
+
+function hideLoading(form) {
+  const button = form.querySelector('[name="submit"]');
+  if (button) {
+    button.disabled = false;
+    button.textContent = 'Save';
+  }
+}
+
+function initRandomImage(form) {
+  const randomButton = document.getElementById('postChangeImage');
+  if (!randomButton) return;
+  randomButton.addEventListener('click', () => {
+    const imgUrl = `https://picsum.photos/id/${randomNumber(1000)}/1368/400`;
+    //set image usl input, background
+    setFieldValue(form, '[name="imageUrl"]', imgUrl);
+    setBackgroundImage(document, '#postHeroImage', imgUrl);
+  });
+}
+
 export function initPostForm({ formId, defaultValues, onSubmit }) {
   const form = document.getElementById(formId);
   if (!form) return;
 
+  let submitting = false;
   setFormValues(form, defaultValues);
+
+  //init event
+  initRandomImage(form);
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (submitting) {
+      return;
+    }
+
+    //show loading/ disabled btn
+    showLoading(form);
+    submitting = true;
+
     //get form value
     const formValues = getFormValue(form);
     formValues.id = defaultValues.id;
-    \
     const isValid = await validatePostForm(form, formValues);
-    if (!isValid) return;
+    if (isValid) await onSubmit?.(formValues);
 
-    onSubmit?.(formValues);
+    hideLoading(form);
+    submitting = false;
   });
 }

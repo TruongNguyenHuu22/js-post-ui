@@ -1,4 +1,5 @@
 import postApi from './api/postApi';
+import { toast } from './utils';
 import { initPostForm } from './utils/post-form';
 
 async function handlePostFormSubmit(formValues) {
@@ -6,10 +7,13 @@ async function handlePostFormSubmit(formValues) {
     const savedPost = formValues.id
       ? await postApi.update(formValues)
       : await postApi.add(formValues);
-
-    window.location.assign(`/post-detail.html?id=${savedPost.id}`);
+    toast.success('Save post successfully!');
+    setTimeout(() => {
+      window.location.assign(`/post-detail.html?id=${savedPost.id}`);
+    }, 2000);
   } catch (error) {
     console.log('failed to save post', error);
+    toast.error(`Error: ${error.message}`);
   }
 }
 (async () => {
