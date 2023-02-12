@@ -104,6 +104,22 @@ function initRandomImage(form) {
   });
 }
 
+function renderImageSourceControl(form, selectedValue) {
+  const controlList = form.querySelectorAll('[data-id=imageSource]');
+
+  controlList.forEach((control) => {
+    control.hidden = control.dataset.imageSource !== selectedValue;
+  });
+}
+
+function initRadioImage(form) {
+  const radioList = form.querySelectorAll('[name=imageSource]');
+
+  radioList.forEach((radio) => {
+    radio.addEventListener('change', (event) => renderImageSourceControl(form, event.target.value));
+  });
+}
+
 export function initPostForm({ formId, defaultValues, onSubmit }) {
   const form = document.getElementById(formId);
   if (!form) return;
@@ -113,6 +129,9 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
 
   //init event
   initRandomImage(form);
+
+  //init event
+  initRadioImage(form);
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
