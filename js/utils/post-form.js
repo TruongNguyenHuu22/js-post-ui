@@ -14,13 +14,6 @@ function setFormValues(form, formValues) {
 
 function getFormValue(form) {
   const formValues = {};
-  //s1: query each input abd add to formValues object
-  //   ['title', 'author', 'description', 'imageUrl'].forEach((name) => {
-  //     const field = form.querySelector(`[name=${name}]`);
-  //     if (field) formValues[name] = field.value;
-  //   });
-
-  //s2: using form data;
   const data = new FormData(form);
   for (const [key, value] of data) {
     formValues[key] = value;
@@ -84,14 +77,15 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
   if (!form) return;
 
   setFormValues(form, defaultValues);
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
     //get form value
     const formValues = getFormValue(form);
-    console.log('formValue', formValues);
-    //validation
-    //trigger submit callback
-    //otherwise show error
-    if (!validatePostForm(form, formValues)) return;
+    formValues.id = defaultValues.id;
+    \
+    const isValid = await validatePostForm(form, formValues);
+    if (!isValid) return;
+
+    onSubmit?.(formValues);
   });
 }
