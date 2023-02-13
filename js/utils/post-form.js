@@ -1,6 +1,11 @@
 import { randomNumber, setBackgroundImage, setFieldValue, setTextContent } from './common';
 import * as yup from 'yup';
 
+const ImageSource = {
+  PICSUM: 'picsum',
+  UPLOAD: 'upload',
+};
+
 function setFormValues(form, formValues) {
   setFieldValue(form, '[name="title"]', formValues?.title);
   setFieldValue(form, '[name="author"]', formValues?.author);
@@ -33,10 +38,20 @@ function getPostSchema() {
         (value) => value.split(' ').filter((x) => !!x && x.length >= 3).length >= 2
       ),
     description: yup.string(),
-    imageUrl: yup
+    imageSource: yup
       .string()
-      .required('Please random a background image')
-      .url('Please enter a valid URL'),
+      .required('Please select an image source')
+      .oneOf([ImageSource.PICSUM, ImageSource.UPLOAD], 'Invalid image source'),
+
+    imageUrl: yup.string().when('imageSource', {
+      is: ImageSource.PICSUM,
+      then: () =>
+        yup.string().required('Please random a background image').url('Please enter a valid URL'),
+    }),
+    image: yup.mixed().when('imageSource', {
+      is: ImageSource.UPLOAD,
+      then: () => yup.mixed().required('Please select an image to upload'),
+    }),
   });
 }
 
@@ -49,6 +64,7 @@ function setFieldError(form, name, error) {
 }
 
 async function validatePostForm(form, formValues) {
+  console.log('🚀 ~ file: post-form.js:73 ~ validatePostForm ~ formValues', formValues);
   try {
     //reset previous error
     ['title', 'author', 'imageUrl'].forEach((name) => setFieldError(form, name, ''));
@@ -57,9 +73,11 @@ async function validatePostForm(form, formValues) {
     const schema = getPostSchema();
     await schema.validate(formValues, { abortEarly: false });
   } catch (error) {
+    console.log('🚀 ~ file: post-form.js:82 ~ validatePostForm ~ error', error);
     const errorLog = {};
     if (error.name === 'ValidationError' && Array.isArray(error.inner)) {
       for (const validationError of error.inner) {
+        console.log('🚀 ~ file: post-form.js:85 ~ validatePostForm ~ error.inner', error.inner);
         const name = validationError.path;
 
         //ignore if the field id already logged
