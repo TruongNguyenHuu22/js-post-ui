@@ -112,7 +112,20 @@ function renderImageSourceControl(form, selectedValue) {
   });
 }
 
-function initRadioImage(form) {
+function initUploadImage(form) {
+  const uploadImage = form.querySelector('[name="image"]');
+  if (!uploadImage) return;
+
+  uploadImage.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(e.target.files[0]);
+      setBackgroundImage(document, '#postHeroImage', imageUrl);
+    }
+  });
+}
+
+function initRadioImageSource(form) {
   const radioList = form.querySelectorAll('[name=imageSource]');
 
   radioList.forEach((radio) => {
@@ -130,8 +143,9 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
   //init event
   initRandomImage(form);
 
-  //init event
-  initRadioImage(form);
+  initRadioImageSource(form);
+
+  initUploadImage(form);
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
