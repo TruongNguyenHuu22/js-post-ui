@@ -1,10 +1,6 @@
 import { randomNumber, setBackgroundImage, setFieldValue, setTextContent } from './common';
 import * as yup from 'yup';
-
-const ImageSource = {
-  PICSUM: 'picsum',
-  UPLOAD: 'upload',
-};
+import { ImageSource } from '../constants';
 
 function setFormValues(form, formValues) {
   setFieldValue(form, '[name="title"]', formValues?.title);
@@ -50,7 +46,15 @@ function getPostSchema() {
     }),
     image: yup.mixed().when('imageSource', {
       is: ImageSource.UPLOAD,
-      then: () => yup.mixed().required('Please select an image to upload'),
+      then: () =>
+        yup
+          .mixed()
+          .test('required', 'Please select an image to upload', (file) => Boolean(file?.name))
+          .test('max-3mb', 'The image is too large (max 3mb)', (file) => {
+            const fileSize = file?.size || 0;
+            const MAX_SIZE = 3 * 1024 * 1024;
+            return fileSize <= MAX_SIZE;
+          }),
     }),
   });
 }
@@ -64,20 +68,17 @@ function setFieldError(form, name, error) {
 }
 
 async function validatePostForm(form, formValues) {
-  console.log('🚀 ~ file: post-form.js:73 ~ validatePostForm ~ formValues', formValues);
   try {
     //reset previous error
-    ['title', 'author', 'imageUrl'].forEach((name) => setFieldError(form, name, ''));
+    ['title', 'author', 'imageUrl', 'image'].forEach((name) => setFieldError(form, name, ''));
 
     //start validating
     const schema = getPostSchema();
     await schema.validate(formValues, { abortEarly: false });
   } catch (error) {
-    console.log('🚀 ~ file: post-form.js:82 ~ validatePostForm ~ error', error);
     const errorLog = {};
     if (error.name === 'ValidationError' && Array.isArray(error.inner)) {
       for (const validationError of error.inner) {
-        console.log('🚀 ~ file: post-form.js:85 ~ validatePostForm ~ error.inner', error.inner);
         const name = validationError.path;
 
         //ignore if the field id already logged
@@ -92,6 +93,26 @@ async function validatePostForm(form, formValues) {
   //add was-validated class to form element
   const isValid = form.checkValidity();
   if (!isValid) form.classList.add('was-validated');
+  return isValid;
+}
+
+async function validateFormField(form, formValues, name) {
+  try {
+    //reset previous error
+    setFieldError(form, name, '');
+
+    //start validating
+    const schema = getPostSchema();
+    await schema.validateAt(name, formValues);
+  } catch (error) {
+    setFieldError(form, name, error.message);
+  }
+  //show validation error (if any)
+  const field = form.querySelector(`[name="${name}"]`);
+  if (field && !field.checkValidity()) {
+    field.parentElement.classList.add('was-validated');
+  }
+
   return isValid;
 }
 
@@ -139,6 +160,9 @@ function initUploadImage(form) {
     if (file) {
       const imageUrl = URL.createObjectURL(e.target.files[0]);
       setBackgroundImage(document, '#postHeroImage', imageUrl);
+
+      //trigger validate of update input
+      validateFormField(form, { imageSource: ImageSource.UPLOAD, image: file }, 'image');
     }
   });
 }
@@ -148,6 +172,18 @@ function initRadioImageSource(form) {
 
   radioList.forEach((radio) => {
     radio.addEventListener('change', (event) => renderImageSourceControl(form, event.target.value));
+  });
+}
+
+function initValuationOnChange(form) {
+  ['title', 'author'].forEach((name) => {
+    const field = form.querySelector(`[name="${name}"]`);
+    if (field) {
+      field.addEventListener('input', (event) => {
+        const newValue = event.target.value;
+        validateFormField(form, { [name]: newValue }, name);
+      });
+    }
   });
 }
 
@@ -164,6 +200,8 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
   initRadioImageSource(form);
 
   initUploadImage(form);
+
+  initValuationOnChange(form);
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

@@ -1,21 +1,54 @@
 import postApi from './api/postApi';
+import { ImageSource } from './constants';
 import { toast } from './utils';
 import { initPostForm } from './utils/post-form';
 
+function removeUnusedField(formValues) {
+  const payload = { ...formValues };
+
+  //imageSrc = 'picsum' ->  remove image
+  //imageSrc = 'upload' ->  remove imageUrl
+
+  if (payload.imageSource === ImageSource.PICSUM) {
+    delete payload.image;
+  } else {
+    delete payload.imageUrl;
+  }
+
+  //remove  imageSource
+  delete payload.imageSource;
+
+  //remove id if it's add mode
+  if (!payload.id) delete payload.id;
+  return payload;
+}
+
+function jsonToFormData(jsonObject) {
+  const formData = new FormData();
+
+  for (const key in jsonObject) {
+    formData.set(key, jsonObject[key]);
+  }
+
+  return formData;
+}
+
 async function handlePostFormSubmit(formValues) {
-  console.log('🚀 ~ file: add-edit-post.js:6 ~ handlePostFormSubmit ~ formValues', formValues);
-  // try {
-  //   const savedPost = formValues.id
-  //     ? await postApi.update(formValues)
-  //     : await postApi.add(formValues);
-  //   toast.success('Save post successfully!');
-  //   setTimeout(() => {
-  //     window.location.assign(`/post-detail.html?id=${savedPost.id}`);
-  //   }, 2000);
-  // } catch (error) {
-  //   console.log('failed to save post', error);
-  //   toast.error(`Error: ${error.message}`);
-  // }
+  try {
+    const payload = removeUnusedField(formValues);
+    const formData = jsonToFormData(payload);
+
+    const savedPost = formValues.id
+      ? await postApi.updateFormData(formData)
+      : await postApi.addFormData(formData);
+    toast.success('Save post successfully!');
+    setTimeout(() => {
+      window.location.assign(`/post-detail.html?id=${savedPost.id}`);
+    }, 1000);
+  } catch (error) {
+    console.log('failed to save post', error);
+    toast.error(`Error: ${error.message}`);
+  }
 }
 (async () => {
   try {
