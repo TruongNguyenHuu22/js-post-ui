@@ -1,11 +1,12 @@
 import dayjs from 'dayjs';
 import postApi from './api/postApi';
-import { initPagination, initSearch, renderPostList, renderPagination } from './utils';
+import { initPagination, initSearch, renderPostList, renderPagination, toast } from './utils';
 
 export async function handleFilterChange(filterName, filterValue) {
   try {
     const url = new URL(window.location);
-    url.searchParams.set(filterName, filterValue);
+
+    if (filterName) url.searchParams.set(filterName, filterValue);
 
     if (filterName === 'title_like') url.searchParams.set('_page', 1);
     history.pushState({}, '', url);
@@ -17,6 +18,36 @@ export async function handleFilterChange(filterName, filterValue) {
   } catch (error) {
     console.log('failed:', error);
   }
+}
+
+function registerPostDeleteEvent() {
+  document.addEventListener('post-delete', async (e) => {
+    try {
+      const post = e.detail;
+      const message = `Are you sure to remove post "${post.title}"?`;
+
+      const deleteConfirmModal = document.getElementById('exampleModal');
+
+      if (!deleteConfirmModal) return;
+      const deleConfirmModalBody = deleteConfirmModal.querySelector('.modal-body');
+      deleConfirmModalBody.textContent = message;
+
+      const deleteButton = deleteConfirmModal.querySelector('#delete_button');
+      if (deleteButton) {
+        deleteButton.addEventListener('click', async () => {
+          await postApi.remove(post.id);
+
+          deleteConfirmModal.classList.remove('show');
+          await handleFilterChange();
+
+          toast.success('Remove post successfully');
+        });
+      }
+    } catch (error) {
+      console.log('failed to remove post', error);
+      toast.error(error.message);
+    }
+  });
 }
 
 //main
@@ -31,6 +62,8 @@ export async function handleFilterChange(filterName, filterValue) {
     history.pushState({}, '', url);
     const queryParams = url.searchParams;
 
+    registerPostDeleteEvent();
+
     initPagination({
       elementId: 'pagination',
       defaultParams: queryParams,
@@ -43,9 +76,7 @@ export async function handleFilterChange(filterName, filterValue) {
       onChange: (value) => handleFilterChange('title_like', value),
     });
 
-    const { data, pagination } = await postApi.getAll(queryParams);
-    renderPostList('postList', data);
-    renderPagination('pagination', pagination);
+    handleFilterChange();
   } catch (error) {
     console.log('get all failed', error);
   }

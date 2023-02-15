@@ -60,7 +60,13 @@
             <div data-id="edit" class="menu-item rounded-circle" role="button">
               <i class="fas fa-pen"></i>
             </div>
-            <div data-id="remove" class="remove-button menu-item rounded-circle" role="button">
+            <div
+              data-id="remove"
+              class="remove-button menu-item rounded-circle"
+              role="button"
+              data-bs-toggle="modal"
+              data-bs-target="#exampleModal"
+            >
               <i class="fas fa-trash"></i>
             </div>
           </div>
@@ -127,6 +133,35 @@
         </button>
       </div>
 
+      <!-- Modal -->
+      <div class="modal fade" id="exampleModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">...</div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button
+                id="delete_button"
+                type="button"
+                class="btn btn-danger"
+                data-bs-dismiss="modal"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <section class="posts-section">
         <div class="container">
           <h1 class="with-underline text-center">Latest posts</h1>
@@ -145,44 +180,7 @@
           </div>
 
           <!-- Post list -->
-          <ul id="postList" class="row posts-list justify-content-center ps-0">
-            <!-- <li class="col-12 col-md-6 col-lg-4">
-              <div class="post-item mb-4">
-                <div class="card">
-                  <img
-                    src="images/recipe.jpg"
-                    class="card-img-top"
-                    alt="recipe"
-                    onerror="this.onerror=null;this.src='https://picsum.photos/1368/400';"
-                  />
-
-                  <div class="card-body">
-                    <h5 class="card-title">Card title</h5>
-
-                    <p class="card-text">
-                      This is a wider card with supporting text below as a natural lead-in to
-                      additional content. This content is a little bit longer.
-                    </p>
-
-                    <p class="card-text">
-                      <small class="text-muted">by</small>
-                      <small class="text-muted font-weight-bold">Henry Nguyen</small>
-                      <small class="text-muted">- 3 mins ago</small>
-                    </p>
-                  </div>
-                </div>
-
-                <div class="post-item-menu">
-                  <div class="menu-item rounded-circle">
-                    <i class="fas fa-pen"></i>
-                  </div>
-                  <div class="menu-item rounded-circle">
-                    <i class="fas fa-trash"></i>
-                  </div>
-                </div>
-              </div>
-            </li> -->
-          </ul>
+          <ul id="postList" class="row posts-list justify-content-center ps-0"></ul>
 
           <!-- Posts pagination -->
           <nav class="posts-nav" aria-label="Posts navigation">
